@@ -39,43 +39,26 @@ class MyHomePage extends StatefulWidget {
 }
 
 class MyHomePageState extends State<MyHomePage> {
-  // These fields hold the last result or error message that we've received from
-  // the server or null if no result exists yet.
-  String? _resultMessage;
-  String? _errorMessage;
-
   final _textEditingController = TextEditingController();
 
-  // Calls the `hello` method of the `example` endpoint. Will set either the
-  // `_resultMessage` or `_errorMessage` field, depending on if the call
-  // is successful.
-  void _callHello() async {
+  void _saveTodo() async {
     try {
-      final result = await client.example.hello(_textEditingController.text);
-      setState(() {
-        _errorMessage = null;
-        _resultMessage = result;
-      });
+      final Todo todo = Todo(
+        title: _textEditingController.text,
+        description: "test",
+        isChecked: false,
+        createdAt: DateTime.now(),
+      );
+      final result = await client.todoEndPoint.addTodo(todo);
+      counter++;
+      debugPrint(result.toString());
+      setState(() {});
     } catch (e) {
-      setState(() {
-        _errorMessage = '$e';
-      });
+      setState(() {});
     }
   }
 
-  void _callBye() async {
-    try {
-      final result = await client.example.goodbye(_textEditingController.text);
-      setState(() {
-        _errorMessage = null;
-        _resultMessage = result;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = '$e';
-      });
-    }
-  }
+  int counter = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -92,28 +75,23 @@ class MyHomePageState extends State<MyHomePage> {
               child: TextField(
                 controller: _textEditingController,
                 decoration: const InputDecoration(
-                  hintText: 'Enter your name',
+                  hintText: 'title ',
                 ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.only(bottom: 16.0),
               child: ElevatedButton(
-                onPressed: _callHello,
-                child: const Text('Send to Hi'),
+                onPressed: _saveTodo,
+                child: const Text('Save'),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: ElevatedButton(
-                onPressed: _callBye,
-                child: const Text('Send to Bye'),
+            Expanded(
+              child: TodoListView(
+                key: ValueKey(counter),
+                update: counter,
               ),
-            ),
-            _ResultDisplay(
-              resultMessage: _resultMessage,
-              errorMessage: _errorMessage,
-            ),
+            )
           ],
         ),
       ),
@@ -121,38 +99,58 @@ class MyHomePageState extends State<MyHomePage> {
   }
 }
 
-// _ResultDisplays shows the result of the call. Either the returned result from
-// the `example.hello` endpoint method or an error message.
-class _ResultDisplay extends StatelessWidget {
-  final String? resultMessage;
-  final String? errorMessage;
+class TodoListView extends StatefulWidget {
+  const TodoListView({super.key, this.update = 0});
+  final int update;
 
-  const _ResultDisplay({
-    this.resultMessage,
-    this.errorMessage,
-  });
+  @override
+  State<TodoListView> createState() => _TodoListViewState();
+}
+
+class _TodoListViewState extends State<TodoListView> {
+  Future<List<Todo>> _getTodos() async {
+    try {
+      final result = await client.todoEndPoint.getTodos()
+        ..sort(
+          (a, b) => a.createdAt.compareTo(b.createdAt),
+        );
+      return result;
+    } catch (e) {
+      setState(() {});
+      return [];
+    }
+  }
+
+  late Future<List<Todo>> future = _getTodos();
 
   @override
   Widget build(BuildContext context) {
-    String text;
-    Color backgroundColor;
-    if (errorMessage != null) {
-      backgroundColor = Colors.red[300]!;
-      text = errorMessage!;
-    } else if (resultMessage != null) {
-      backgroundColor = Colors.green[300]!;
-      text = resultMessage!;
-    } else {
-      backgroundColor = Colors.grey[300]!;
-      text = 'No server response yet.';
-    }
+    return FutureBuilder<List<Todo>>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return ListView.builder(
+            itemCount: snapshot.data!.length,
+            itemBuilder: (context, index) {
+              final item = snapshot.data![index];
+              return CheckboxListTile(
+                title: Text(item.title),
+                subtitle: Text(item.description),
+                value: item.isChecked,
+                onChanged: (value) async {
+                  await client.todoEndPoint.toggleTodo(item);
+                  future = _getTodos();
+                  setState(() {});
+                },
+              );
+            },
+          );
+        } else if (snapshot.hasError) {
+          return Text('${snapshot.error}');
+        }
 
-    return Container(
-      height: 50,
-      color: backgroundColor,
-      child: Center(
-        child: Text(text),
-      ),
+        return const CircularProgressIndicator();
+      },
     );
   }
 }

@@ -1,0 +1,10 @@
+# The fields (and columns if connected to the database) of the class. Supported types are
+# `bool`, `int`, `double`, `String`, `UuidValue`, `Duration`, `DateTime`, `ByteData`,
+
+class: Todo
+table: todo
+fields:
+  title: String
+  description: String
+  isChecked: bool
+  createdAt: DateTime

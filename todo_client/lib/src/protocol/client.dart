@@ -10,25 +10,34 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'dart:async' as _i2;
-import 'protocol.dart' as _i3;
+import 'package:todo_client/src/protocol/todo_item.dart' as _i3;
+import 'protocol.dart' as _i4;
 
 /// {@category Endpoint}
-class EndpointExample extends _i1.EndpointRef {
-  EndpointExample(_i1.EndpointCaller caller) : super(caller);
+class EndpointTodoEndPoint extends _i1.EndpointRef {
+  EndpointTodoEndPoint(_i1.EndpointCaller caller) : super(caller);
 
   @override
-  String get name => 'example';
+  String get name => 'todoEndPoint';
 
-  _i2.Future<String> hello(String name) => caller.callServerEndpoint<String>(
-        'example',
-        'hello',
-        {'name': name},
+  _i2.Future<_i3.Todo> addTodo(_i3.Todo todo) =>
+      caller.callServerEndpoint<_i3.Todo>(
+        'todoEndPoint',
+        'addTodo',
+        {'todo': todo},
       );
 
-  _i2.Future<String> goodbye(String name) => caller.callServerEndpoint<String>(
-        'example',
-        'goodbye',
-        {'name': name},
+  _i2.Future<bool> toggleTodo(_i3.Todo todo) => caller.callServerEndpoint<bool>(
+        'todoEndPoint',
+        'toggleTodo',
+        {'todo': todo},
+      );
+
+  _i2.Future<List<_i3.Todo>> getTodos({int? id}) =>
+      caller.callServerEndpoint<List<_i3.Todo>>(
+        'todoEndPoint',
+        'getTodos',
+        {'id': id},
       );
 }
 
@@ -41,19 +50,20 @@ class Client extends _i1.ServerpodClient {
     Duration? connectionTimeout,
   }) : super(
           host,
-          _i3.Protocol(),
+          _i4.Protocol(),
           securityContext: securityContext,
           authenticationKeyManager: authenticationKeyManager,
           streamingConnectionTimeout: streamingConnectionTimeout,
           connectionTimeout: connectionTimeout,
         ) {
-    example = EndpointExample(this);
+    todoEndPoint = EndpointTodoEndPoint(this);
   }
 
-  late final EndpointExample example;
+  late final EndpointTodoEndPoint todoEndPoint;
 
   @override
-  Map<String, _i1.EndpointRef> get endpointRefLookup => {'example': example};
+  Map<String, _i1.EndpointRef> get endpointRefLookup =>
+      {'todoEndPoint': todoEndPoint};
 
   @override
   Map<String, _i1.ModuleEndpointCaller> get moduleLookup => {};

@@ -9,29 +9,30 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
-import '../endpoints/example_endpoint.dart' as _i2;
+import '../endpoints/todo_endpoint.dart' as _i2;
+import 'package:todo_server/src/generated/todo_item.dart' as _i3;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
   void initializeEndpoints(_i1.Server server) {
     var endpoints = <String, _i1.Endpoint>{
-      'example': _i2.ExampleEndpoint()
+      'todoEndPoint': _i2.TodoEndPoint()
         ..initialize(
           server,
-          'example',
+          'todoEndPoint',
           null,
         )
     };
-    connectors['example'] = _i1.EndpointConnector(
-      name: 'example',
-      endpoint: endpoints['example']!,
+    connectors['todoEndPoint'] = _i1.EndpointConnector(
+      name: 'todoEndPoint',
+      endpoint: endpoints['todoEndPoint']!,
       methodConnectors: {
-        'hello': _i1.MethodConnector(
-          name: 'hello',
+        'addTodo': _i1.MethodConnector(
+          name: 'addTodo',
           params: {
-            'name': _i1.ParameterDescription(
-              name: 'name',
-              type: _i1.getType<String>(),
+            'todo': _i1.ParameterDescription(
+              name: 'todo',
+              type: _i1.getType<_i3.Todo>(),
               nullable: false,
             )
           },
@@ -39,17 +40,17 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['example'] as _i2.ExampleEndpoint).hello(
+              (endpoints['todoEndPoint'] as _i2.TodoEndPoint).addTodo(
             session,
-            params['name'],
+            params['todo'],
           ),
         ),
-        'goodbye': _i1.MethodConnector(
-          name: 'goodbye',
+        'toggleTodo': _i1.MethodConnector(
+          name: 'toggleTodo',
           params: {
-            'name': _i1.ParameterDescription(
-              name: 'name',
-              type: _i1.getType<String>(),
+            'todo': _i1.ParameterDescription(
+              name: 'todo',
+              type: _i1.getType<_i3.Todo>(),
               nullable: false,
             )
           },
@@ -57,9 +58,27 @@ class Endpoints extends _i1.EndpointDispatch {
             _i1.Session session,
             Map<String, dynamic> params,
           ) async =>
-              (endpoints['example'] as _i2.ExampleEndpoint).goodbye(
+              (endpoints['todoEndPoint'] as _i2.TodoEndPoint).toggleTodo(
             session,
-            params['name'],
+            params['todo'],
+          ),
+        ),
+        'getTodos': _i1.MethodConnector(
+          name: 'getTodos',
+          params: {
+            'id': _i1.ParameterDescription(
+              name: 'id',
+              type: _i1.getType<int?>(),
+              nullable: true,
+            )
+          },
+          call: (
+            _i1.Session session,
+            Map<String, dynamic> params,
+          ) async =>
+              (endpoints['todoEndPoint'] as _i2.TodoEndPoint).getTodos(
+            session,
+            id: params['id'],
           ),
         ),
       },

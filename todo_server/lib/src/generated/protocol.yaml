@@ -1,3 +1,4 @@
-example:
-  - hello:
-  - goodbye:
+todoEndPoint:
+  - addTodo:
+  - toggleTodo:
+  - getTodos:
